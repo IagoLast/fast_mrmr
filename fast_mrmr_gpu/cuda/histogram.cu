@@ -65,7 +65,7 @@ __global__ void naiveHistoKernel_warp(t_data * data_vector, histogram histo,
 	int i = tid;
 	int offset = blockDim.x * gridDim.x;
 	while (i < datasize / 16) {
-		uint4 fourValuesX = ((uint4 *) data_vector)[i]; //FIXME
+		uint4 fourValuesX = ((uint4 *) data_vector)[i];
 		addWord(&sharedHistogram[MAX_BINS * wid], fourValuesX.x);
 		addWord(&sharedHistogram[MAX_BINS * wid], fourValuesX.y);
 		addWord(&sharedHistogram[MAX_BINS * wid], fourValuesX.z);

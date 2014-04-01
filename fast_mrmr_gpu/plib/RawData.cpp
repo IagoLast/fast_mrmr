@@ -8,6 +8,8 @@
  */
 #include "RawData.h"
 #include <string.h>
+#include <cuda_runtime_api.h>
+#include <cuda.h>
 /**
  * Constructor that creates a rawData object.
  *
@@ -19,6 +21,9 @@ RawData::RawData() {
 	dataFile = fopen("data.mrmr", "rb");
 	calculateDSandFS();
 	loadData();
+	//FIXME: Descomentar para GPU.
+	//mallocGPU();
+	//moveGPU();
 	calculateVR();
 }
 
@@ -26,12 +31,19 @@ RawData::~RawData() {
 
 }
 
+void RawData::freeGPU(){
+	cudaFree(d_data);
+}
+
 /**
  *
  */
 void RawData::destroy() {
+	//FIXME: Descomentar para GPU.
+	//freeGPU();
 	free(valuesRange);
-	free(data);
+	free(h_data);
+
 }
 
 void RawData::calculateDSandFS() {
@@ -47,17 +59,43 @@ void RawData::loadData() {
 	uint i, j;
 	t_data buffer[1];
 	//	Reservo espacio para SIZE punteros
-	data = (t_data*) calloc(featuresSize, sizeof(t_data) * datasize);
+	h_data = (t_data*) calloc(featuresSize, sizeof(t_data) * datasize);
 	fseek(dataFile, 8, 0);
 	for (i = 0; i < datasize; i++) {
 		for (j = 0; j < featuresSize; j++) {
 			fread(buffer, sizeof(t_data), 1, dataFile);
-			data[j * datasize + i] = buffer[0];
+			h_data[j * datasize + i] = buffer[0];
 		}
 	}
 }
+
 /**
- * Calculates how many different values each feature has.
+ * Allocs space to keep all data in GPU, if error  program ends.
+ */
+void RawData::mallocGPU() {
+	cudaMalloc((void**) &d_data, datasize * featuresSize * sizeof(t_data));
+	cudaError err = cudaGetLastError();
+	if (cudaSuccess != err) {
+		printf("Error allocating data in GPU: %d", err);
+		exit(-1);
+	}
+}
+
+/**
+ * Moves the data from host to device, if error  program ends.
+ */
+void RawData::moveGPU() {
+	cudaMemcpy(d_data, h_data, datasize * featuresSize * sizeof(t_data),
+			cudaMemcpyHostToDevice);
+	cudaError err = cudaGetLastError();
+	if (cudaSuccess != err) {
+		printf("Error allocating data in GPU: %d", err);
+		exit(-1);
+	}
+}
+
+/**
+ * Calculates how many different values has each feature.
  */
 void RawData::calculateVR() {
 	uint i, j;
@@ -67,7 +105,7 @@ void RawData::calculateVR() {
 	for (i = 0; i < featuresSize; i++) {
 		vr = 0;
 		for (j = 0; j < datasize; j++) {
-			dataReaded = data[i * datasize + j];
+			dataReaded = h_data[i * datasize + j];
 			if (dataReaded > vr) {
 				vr++;
 			}
@@ -108,5 +146,12 @@ uint * RawData::getValuesRangeArray() {
  * Returns a vector containing a feature.
  */
 t_feature RawData::getFeature(int index) {
-	return data + index * datasize;
+	return h_data + index * datasize;
+}
+
+/**
+ * Returns the GPU vector that contains the feature.
+ */
+t_feature RawData::getFeatureGPU(int index){
+	return d_data + index * datasize;
 }

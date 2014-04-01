@@ -25,15 +25,22 @@ public:
 	uint getDataSize();
 	uint getFeaturesSize();
 	t_feature getFeature(int index);
+	t_feature getFeatureGPU(int index);
 
 private:
 
 	void loadData();
-	t_data* data;
+	t_feature h_data;
 	uint featuresSize;
 	uint datasize;
 	uint* valuesRange;
 	FILE * dataFile;
+
+	//GPU Stuff
+	void mallocGPU();
+	void moveGPU();
+	void freeGPU();
+	t_feature d_data;
 
 };
 
