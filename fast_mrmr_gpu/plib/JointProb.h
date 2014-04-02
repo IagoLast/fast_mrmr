@@ -18,7 +18,7 @@ public:
 
 private:
 	RawData rawData;
-	t_histogram data;
+	t_histogram h_acum;
 	uint datasize;
 	uint valuesRange1;
 	uint valuesRange2;

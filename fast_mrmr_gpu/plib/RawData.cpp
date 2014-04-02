@@ -21,9 +21,8 @@ RawData::RawData() {
 	dataFile = fopen("data.mrmr", "rb");
 	calculateDSandFS();
 	loadData();
-	//FIXME: Descomentar para GPU.
-	//mallocGPU();
-	//moveGPU();
+	mallocGPU();
+	moveGPU();
 	calculateVR();
 }
 
@@ -31,19 +30,18 @@ RawData::~RawData() {
 
 }
 
-void RawData::freeGPU(){
+void RawData::freeGPU() {
 	cudaFree(d_data);
+	cudaFree(d_acum);
 }
 
 /**
  *
  */
 void RawData::destroy() {
-	//FIXME: Descomentar para GPU.
-	//freeGPU();
+	freeGPU();
 	free(valuesRange);
 	free(h_data);
-
 }
 
 void RawData::calculateDSandFS() {
@@ -73,10 +71,16 @@ void RawData::loadData() {
  * Allocs space to keep all data in GPU, if error  program ends.
  */
 void RawData::mallocGPU() {
-	cudaMalloc((void**) &d_data, datasize * featuresSize * sizeof(t_data));
+	cudaMalloc((void**) &d_acum, 255 * 255 * sizeof(uint));
 	cudaError err = cudaGetLastError();
 	if (cudaSuccess != err) {
-		printf("Error allocating data in GPU: %d", err);
+		printf("Error allocating d_acum in GPU: %d", err);
+		exit(-1);
+	}
+	cudaMalloc((void**) &d_data, datasize * featuresSize * sizeof(t_data));
+	err = cudaGetLastError();
+	if (cudaSuccess != err) {
+		printf("Error allocating d_data in GPU: %d", err);
 		exit(-1);
 	}
 }
@@ -89,7 +93,7 @@ void RawData::moveGPU() {
 			cudaMemcpyHostToDevice);
 	cudaError err = cudaGetLastError();
 	if (cudaSuccess != err) {
-		printf("Error allocating data in GPU: %d", err);
+		printf("Error moving data to GPU: %d", err);
 		exit(-1);
 	}
 }
@@ -112,6 +116,13 @@ void RawData::calculateVR() {
 		}
 		valuesRange[i] = vr + 1;
 	}
+}
+
+/**
+ * d_acum es un acumlador permanente para evitar hacer un malloc por cada histograma.
+ */
+t_histogram RawData::getAcum() {
+	return d_acum;
 }
 
 /**
@@ -152,6 +163,6 @@ t_feature RawData::getFeature(int index) {
 /**
  * Returns the GPU vector that contains the feature.
  */
-t_feature RawData::getFeatureGPU(int index){
+t_feature RawData::getFeatureGPU(int index) {
 	return d_data + index * datasize;
 }

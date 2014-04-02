@@ -25,9 +25,10 @@ typedef struct  histoparams{
 	t_data * data_vector1;
 	t_data * data_vector2;
 	histogram histo;
-	unsigned int datasize;
+	uint datasize;
 	int valuesRangeY;
 	uint lap;
+	uint maxBins;
 } histoparams;
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -6,6 +6,9 @@
  */
 
 #include "JointProb.h"
+#include <cuda_runtime_api.h>
+#include <cuda.h>
+#include "../cuda/histogramJoint.h"
 
 JointProb::JointProb(RawData & rd, uint index1, uint index2) :
 		rawData(rd) {
@@ -14,28 +17,33 @@ JointProb::JointProb(RawData & rd, uint index1, uint index2) :
 	this->valuesRange1 = rawData.getValuesRange(index1);
 	this->valuesRange2 = rawData.getValuesRange(index2);
 	this->datasize = rawData.getDataSize();
-	this->data = (t_histogram) calloc(valuesRange1 * valuesRange2,
+	this->h_acum = (t_histogram) calloc(valuesRange1 * valuesRange2,
 			sizeof(uint));
-
 	calculate();
 }
 
 JointProb::~JointProb() {
-	free(data);
+	free (h_acum);
 }
 
 void JointProb::calculate() {
-	t_feature h_vector1 = rawData.getFeature(index1);
-	t_feature h_vector2 = rawData.getFeature(index2);
+	uint vr = valuesRange1 * valuesRange2;
+	t_feature d_vector1 = rawData.getFeatureGPU(index1);
+	t_feature d_vector2 = rawData.getFeatureGPU(index2);
+	t_histogram d_acum = rawData.getAcum();
 
-	//Calculate histogram in CPU
-	for (int i = 0; i < datasize; i++) {
-		data[h_vector1[i] * valuesRange2 + h_vector2[i]]++;
+	histogramNaiveJoint(d_vector1, d_vector2, d_acum, datasize, 240,
+			valuesRange2, vr);
+	cudaMemcpy(h_acum, d_acum, vr * sizeof(uint), cudaMemcpyDeviceToHost);
+	cudaError err = cudaGetLastError();
+	if (cudaSuccess != err) {
+		printf("Error calculating Joint Prob in GPU: %d", err);
+		exit(-1);
 	}
 }
 
 t_prob JointProb::getProb(t_data valueFeature1, t_data valueFeature2) {
-	return (t_prob) data[valueFeature1 * valuesRange2 + valueFeature2]
+	return (t_prob) h_acum[valueFeature1 * valuesRange2 + valueFeature2]
 			/ (t_prob) datasize;
 }
 

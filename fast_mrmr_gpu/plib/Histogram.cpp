@@ -6,39 +6,38 @@
  */
 
 #include "Histogram.h"
+#include "../cuda/cuda_histogram.h"
+#include <cuda_runtime_api.h>
+#include <cuda.h>
 
 Histogram::Histogram(RawData & rd) :
 		rawData(rd) {
-
+	h_acum = (t_histogram) calloc(255 * 255 , sizeof(uint));
 }
 
 Histogram::~Histogram() {
+	free(h_acum);
 }
 
 t_histogram Histogram::getHistogram(uint index) {
-	//TODO: Ajustar parametros gpu, limpiar codigo kernels y limpiar imports GPU.
 	uint vr = rawData.getValuesRange(index);
-	t_feature h_vector = rawData.getFeature(index); //FIXME: no hace falta en gpu version.
-	t_histogram d_acum;
-	t_histogram h_acum = (t_histogram) calloc(vr, sizeof(uint));
+	t_histogram d_acum = rawData.getAcum();
+//	t_histogram h_acum = (t_histogram) calloc(vr, sizeof(uint)); //este malloc se hace solo una vez ahora.
 
-	//CUDA STUFF
-	cudaMalloc((void**) &d_acum, vr * sizeof(uint));
+//CUDA STUFF
+	cudaMemset(d_acum, 0, vr * sizeof(uint));
 	t_feature d_vector = rawData.getFeatureGPU(index);
 
 	if (vr <= 64) {
-
-		histogram64(d_acum,d_vector,DATASIZE);
+		histogram64(d_acum, d_vector, rawData.getDataSize());
 	} else {
-		histogramNaive(d_vector, d_acum, DATASIZE, blocks);
-
+		histogramNaive(d_vector, d_acum, rawData.getDataSize(), 240);
 	}
-	/* CPU histogram.
-	 for (uint i = 0; i < rawData.getDataSize(); i++) {
-	 h_acum[data[i]]++;
-	 }
-	 //*/
 	cudaMemcpy(h_acum, d_acum, vr * sizeof(uint), cudaMemcpyDeviceToHost);
-	cudaFree(d_acum);
+	cudaError err = cudaGetLastError();
+	if (cudaSuccess != err) {
+		printf("Error allocating data in GPU: %d", err);
+		exit(-1);
+	}
 	return h_acum;
 }

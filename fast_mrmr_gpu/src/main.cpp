@@ -34,8 +34,7 @@ uint getMaxRelevance(vector<double> classRelevances, uint classIndex) {
 options parseOptions(int argc, char*argv[]) {
 	options opts;
 	opts.classIndex = 0;
-	opts.selectedFeatures = 10;
-
+	opts.selectedFeatures = 50;
 	if (argc > 1) {
 		for (int i = 0; i < argc; ++i) {
 			if (strcmp(argv[i], "-c") == 0) {
@@ -71,7 +70,7 @@ int main(int argc, char* argv[]) {
 	RawData rawData = RawData();
 	tm.start();
 	ProbTable prob = ProbTable(rawData);
-	//cout << "Time CPU (histogram): " << tm.stop() << " ms" << endl;
+	//cout << "Time GPU (histogram): " << tm.stop() << " ms" << endl;
 	MutualInfo mutualInfo = MutualInfo(rawData, prob);
 	opts = parseOptions(argc, argv);
 

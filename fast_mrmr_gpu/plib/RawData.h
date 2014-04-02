@@ -26,6 +26,7 @@ public:
 	uint getFeaturesSize();
 	t_feature getFeature(int index);
 	t_feature getFeatureGPU(int index);
+	t_histogram getAcum();
 
 private:
 
@@ -41,6 +42,7 @@ private:
 	void moveGPU();
 	void freeGPU();
 	t_feature d_data;
+	t_histogram d_acum;
 
 };
 

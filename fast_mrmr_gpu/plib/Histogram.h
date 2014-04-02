@@ -16,6 +16,7 @@ public:
 	t_histogram getHistogram(uint index);
 private:
 	RawData rawData;
+	t_histogram h_acum;
 };
 
 #endif /* HISTOGRAM_H_ */

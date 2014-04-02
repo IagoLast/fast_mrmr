@@ -32,7 +32,6 @@ void ProbTable::calculate() {
 			value = (t_prob) hist_data[j] / (t_prob) datasize;
 			table[i][j] = value;
 		}
-		free(hist_data);
 	}
 }
 

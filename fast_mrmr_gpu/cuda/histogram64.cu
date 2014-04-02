@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "histogram.h"
+#include "cuda_histogram.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // GPU-specific common definitions
@@ -30,9 +30,7 @@ typedef uint4 data_t;
 ////////////////////////////////////////////////////////////////////////////////
 //Count a byte into shared-memory storage
 inline __device__ void addByte(uchar *s_ThreadBase, uint data) {
-	if (data != 0xFF) {
-		s_ThreadBase[UMUL(data, HISTOGRAM64_THREADBLOCK_SIZE)]++;
-	}
+	s_ThreadBase[UMUL(data, HISTOGRAM64_THREADBLOCK_SIZE)]++;
 }
 
 //Count four bytes of a word
