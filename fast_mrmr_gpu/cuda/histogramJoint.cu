@@ -27,13 +27,17 @@ inline __device__ void addWord(uint * s_histo, uint fourValuesX,
 }
 
 __global__ void naiveHistoKernelJoint(histoparams params) {
-	uint i = threadIdx.x;
+	 uint i;
 	__shared__ unsigned int sharedHistogram[MAX_BINS_PER_BLOCK];
 
+
 	//Inicializar el acum a cero.
-	while (i < params.maxBins) {
-		params.histo[i] = 0;
-		i += blockDim.x;
+	if (params.lap == 0){
+		i = threadIdx.x + blockIdx.x * blockDim.x;
+		while (i < params.maxBins) {
+			params.histo[i] = 0;
+			i += blockDim.x *  gridDim.x;
+		}
 	}
 
 	i = threadIdx.x;

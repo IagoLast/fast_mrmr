@@ -6,6 +6,7 @@
  */
 
 #include "ProbTable.h"
+#include "../cuda/cuda_histogram.h"
 
 ProbTable::ProbTable(RawData & rd): rawData(rd) {
 	this->datasize = rawData.getDataSize();
@@ -47,5 +48,6 @@ void ProbTable::destroy() {
 	for (int i = 0; i < featuresSize; i++) {
 		free(table[i]);
 	}
+	closeHistogram64();
 	free(table);
 }

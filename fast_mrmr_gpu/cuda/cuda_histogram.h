@@ -52,7 +52,7 @@ typedef byte t_data;
 extern "C" void histogram64(uint *d_Histogram, void *d_Data, uint byteCount);
 extern "C" void histogramNaive(t_data * d_vector, histogram d_hist,
 		unsigned int datasize, int blocks);
-
+extern "C" void closeHistogram64(void);
 
 
 

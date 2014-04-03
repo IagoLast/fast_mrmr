@@ -7,14 +7,12 @@
 #define WARPS_PER_BLOCK 6	// 2.1 max 8 blocks per sm and max 48 warps per sm.
 #define THREADS_PER_BLOCK 192 // Warp
 #define MAX_BINS 255		// 1KB shared mem per warp. (1 bin = 4 bytes)
-
-
 inline __device__ void addByte(byte data, histogram sharedHisto) {
 	atomicAdd(&sharedHisto[data], 1);
 }
 
 inline __device__ void addWord(histogram sharedHisto, uint fourValuesX) {
-	#pragma unroll 4
+#pragma unroll 4
 	for (byte i = 0; i < 4; i++) {
 		addByte((byte) (fourValuesX >> (i * 8)), sharedHisto);
 	}
@@ -22,20 +20,26 @@ inline __device__ void addWord(histogram sharedHisto, uint fourValuesX) {
 
 __global__ void naiveHistoKernel_warp(t_data * data_vector, histogram histo,
 		const unsigned int datasize) {
-
+	int i;
 	__shared__ unsigned int sharedHistogram[MAX_BINS * WARPS_PER_BLOCK];
 	const int tid = threadIdx.x + blockIdx.x * blockDim.x;
 	const int wid = threadIdx.x / HISTOGRAM_WARP_WARP_SIZE;
 
 // Inicializar la memoria a cero
-	for (int i = threadIdx.x; i < MAX_BINS * WARPS_PER_BLOCK; i +=
+	i = threadIdx.x + blockIdx.x * blockDim.x;
+	while (i < MAX_BINS) {
+		histo[i] = 0;
+		i += blockDim.x * gridDim.x;
+	}
+
+	for (i = threadIdx.x; i < MAX_BINS * WARPS_PER_BLOCK; i +=
 			THREADS_PER_BLOCK) {
 		sharedHistogram[i] = 0;
 	}
 	__syncthreads();
 
 // Calcular la suma en el histograma local
-	int i = tid;
+	i = tid;
 	int offset = blockDim.x * gridDim.x;
 	while (i < datasize / 16) {
 		uint4 fourValuesX = ((uint4 *) data_vector)[i];
@@ -48,7 +52,7 @@ __global__ void naiveHistoKernel_warp(t_data * data_vector, histogram histo,
 	__syncthreads();
 
 // Reducir el Histograma.
-	for (int i = threadIdx.x; i < MAX_BINS; i += THREADS_PER_BLOCK) {
+	for (i = threadIdx.x; i < MAX_BINS; i += THREADS_PER_BLOCK) {
 		uint acum = 0;
 		for (uint j = 0; j < WARPS_PER_BLOCK; j++) {
 			acum += sharedHistogram[MAX_BINS * j + i];
@@ -60,5 +64,6 @@ __global__ void naiveHistoKernel_warp(t_data * data_vector, histogram histo,
 
 extern "C" void histogramNaive(t_data * d_vector, histogram d_hist,
 		unsigned int datasize, int blocks) {
-	naiveHistoKernel_warp<<<blocks, THREADS_PER_BLOCK>>>(d_vector, d_hist,datasize);
+	naiveHistoKernel_warp<<<blocks, THREADS_PER_BLOCK>>>(d_vector, d_hist,
+			datasize);
 }

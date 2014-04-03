@@ -140,24 +140,29 @@ __global__ void mergeHistogram64Kernel(uint *d_Histogram,
 //MAX_PARTIAL_HISTOGRAM64_COUNT == 32768 and HISTOGRAM64_THREADBLOCK_SIZE == 64
 //amounts to max. 480MB of input data
 static const uint MAX_PARTIAL_HISTOGRAM64_COUNT = 32768;
-static uint *d_PartialHistograms;
+
+extern "C"  static uint *d_PartialHistograms;
+extern "C"  static bool firstTime = true;
 
 //Internal memory allocation
 extern "C" void initHistogram64(void) {
 	assert(HISTOGRAM64_THREADBLOCK_SIZE % (4 * SHARED_MEMORY_BANKS) == 0);
-	cudaMalloc((void **) &d_PartialHistograms,
-			MAX_PARTIAL_HISTOGRAM64_COUNT * HISTOGRAM64_BIN_COUNT
-					* sizeof(uint));
-	cudaError err = cudaGetLastError();
-	if (cudaSuccess != err) {
-		printf("Error allocating partial histograms in GPU: %d", err);
-		exit(-1);
+	if(firstTime){
+		cudaMalloc((void **) &d_PartialHistograms,
+				MAX_PARTIAL_HISTOGRAM64_COUNT * HISTOGRAM64_BIN_COUNT
+						* sizeof(uint));
+		cudaError err = cudaGetLastError();
+		if (cudaSuccess != err) {
+			printf("Error allocating partial histograms in GPU: %d", err);
+			exit(-1);
+		}
+		firstTime = false;
 	}
 }
 
 //Internal memory deallocation
 extern "C" void closeHistogram64(void) {
-	cudaFree(d_PartialHistograms);
+	cudaFree(d_PartialHistograms); // FIXME: liberar al final
 }
 
 //Round a / b to nearest higher integer value
@@ -180,5 +185,4 @@ extern "C" void histogram64(uint *d_Histogram, void *d_Data, uint byteCount) {
 
 	mergeHistogram64Kernel<<<HISTOGRAM64_BIN_COUNT, MERGE_THREADBLOCK_SIZE>>>(
 			d_Histogram, d_PartialHistograms, histogramCount);
-	closeHistogram64();
 }

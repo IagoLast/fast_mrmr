@@ -25,7 +25,7 @@ t_histogram Histogram::getHistogram(uint index) {
 //	t_histogram h_acum = (t_histogram) calloc(vr, sizeof(uint)); //este malloc se hace solo una vez ahora.
 
 //CUDA STUFF
-	cudaMemset(d_acum, 0, vr * sizeof(uint));
+	//cudaMemset(d_acum, 0, vr * sizeof(uint));
 	t_feature d_vector = rawData.getFeatureGPU(index);
 
 	if (vr < 64) {

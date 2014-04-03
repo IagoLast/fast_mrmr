@@ -34,7 +34,7 @@ uint getMaxRelevance(vector<double> classRelevances, uint classIndex) {
 options parseOptions(int argc, char*argv[]) {
 	options opts;
 	opts.classIndex = 0;
-	opts.selectedFeatures = 50;
+	opts.selectedFeatures = 10;
 	if (argc > 1) {
 		for (int i = 0; i < argc; ++i) {
 			if (strcmp(argv[i], "-c") == 0) {
@@ -109,9 +109,10 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		//Last feature doesn't prints comma.
-		if ( (selectedFeatures.size() == (opts.selectedFeatures - 1)) or (selectedFeatures.size() == (rawData.getFeaturesSize() -2)) ){
+		if ((selectedFeatures.size() == (opts.selectedFeatures - 1))
+				or (selectedFeatures.size() == (rawData.getFeaturesSize() - 2))) {
 			cout << newFeatureIndex;
-		}else{
+		} else {
 			cout << newFeatureIndex << ",";
 		}
 		selectedFeatures.push_back(newFeatureIndex);
