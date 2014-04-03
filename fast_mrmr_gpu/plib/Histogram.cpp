@@ -12,7 +12,7 @@
 
 Histogram::Histogram(RawData & rd) :
 		rawData(rd) {
-	h_acum = (t_histogram) calloc(255 * 255 , sizeof(uint));
+	h_acum = (t_histogram) calloc(255 * 255, sizeof(uint));
 }
 
 Histogram::~Histogram() {
@@ -28,7 +28,7 @@ t_histogram Histogram::getHistogram(uint index) {
 	cudaMemset(d_acum, 0, vr * sizeof(uint));
 	t_feature d_vector = rawData.getFeatureGPU(index);
 
-	if (vr <= 64) {
+	if (vr < 64) {
 		histogram64(d_acum, d_vector, rawData.getDataSize());
 	} else {
 		histogramNaive(d_vector, d_acum, rawData.getDataSize(), 240);

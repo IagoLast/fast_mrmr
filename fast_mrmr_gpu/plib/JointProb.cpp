@@ -31,7 +31,6 @@ void JointProb::calculate() {
 	t_feature d_vector1 = rawData.getFeatureGPU(index1);
 	t_feature d_vector2 = rawData.getFeatureGPU(index2);
 	t_histogram d_acum = rawData.getAcum();
-
 	histogramNaiveJoint(d_vector1, d_vector2, d_acum, datasize, 240,
 			valuesRange2, vr);
 	cudaMemcpy(h_acum, d_acum, vr * sizeof(uint), cudaMemcpyDeviceToHost);
