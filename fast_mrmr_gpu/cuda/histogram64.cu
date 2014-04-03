@@ -148,6 +148,11 @@ extern "C" void initHistogram64(void) {
 	cudaMalloc((void **) &d_PartialHistograms,
 			MAX_PARTIAL_HISTOGRAM64_COUNT * HISTOGRAM64_BIN_COUNT
 					* sizeof(uint));
+	cudaError err = cudaGetLastError();
+	if (cudaSuccess != err) {
+		printf("Error allocating partial histograms in GPU: %d", err);
+		exit(-1);
+	}
 }
 
 //Internal memory deallocation
@@ -169,13 +174,11 @@ extern "C" void histogram64(uint *d_Histogram, void *d_Data, uint byteCount) {
 	const uint histogramCount = iDivUp(byteCount,
 			HISTOGRAM64_THREADBLOCK_SIZE * iSnapDown(255, sizeof(data_t)));
 	initHistogram64();
-
 	histogram64Kernel<<<histogramCount, HISTOGRAM64_THREADBLOCK_SIZE>>>(
 			d_PartialHistograms, (data_t *) d_Data,
 			(byteCount + byteCount % 16) / sizeof(data_t));
 
 	mergeHistogram64Kernel<<<HISTOGRAM64_BIN_COUNT, MERGE_THREADBLOCK_SIZE>>>(
 			d_Histogram, d_PartialHistograms, histogramCount);
-
 	closeHistogram64();
 }
