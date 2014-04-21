@@ -6,7 +6,8 @@
 #define WARP_SIZE	32		// Threads per warp.
 #define WARPS_PER_BLOCK 6	// 2.1 max 8 blocks per sm and max 48 warps per sm.
 #define THREADS_PER_BLOCK 192 // warp size * warps/block
-#define MAX_BINS_PER_BLOCK 255	// ~6KB shared mem per block. (1 bin = 4 bytes)
+#define MAX_BINS_PER_BLOCK 2048	// ~6KB shared mem per block. (1 bin = 4 bytes)
+
 inline __device__ void addByte(uint * s_histo, byte x, byte y,
 		histoparams params) {
 	uint pos = (x * params.valuesRangeY + y);
@@ -27,16 +28,15 @@ inline __device__ void addWord(uint * s_histo, uint fourValuesX,
 }
 
 __global__ void naiveHistoKernelJoint(histoparams params) {
-	 uint i;
+	uint i;
 	__shared__ unsigned int sharedHistogram[MAX_BINS_PER_BLOCK];
 
-
 	//Inicializar el acum a cero.
-	if (params.lap == 0){
+	if (params.lap == 0) {
 		i = threadIdx.x + blockIdx.x * blockDim.x;
 		while (i < params.maxBins) {
 			params.histo[i] = 0;
-			i += blockDim.x *  gridDim.x;
+			i += blockDim.x * gridDim.x;
 		}
 	}
 

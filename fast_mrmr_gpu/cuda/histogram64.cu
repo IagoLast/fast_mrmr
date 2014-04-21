@@ -162,7 +162,7 @@ extern "C" void initHistogram64(void) {
 
 //Internal memory deallocation
 extern "C" void closeHistogram64(void) {
-	cudaFree(d_PartialHistograms); // FIXME: liberar al final
+	cudaFree(d_PartialHistograms);
 }
 
 //Round a / b to nearest higher integer value

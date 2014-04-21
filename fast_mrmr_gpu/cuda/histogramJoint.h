@@ -21,6 +21,7 @@ typedef unsigned int uint;
 typedef unsigned char uchar;
 typedef byte t_data;
 
+//Used to reduce the number of registers used on the GPU.
 typedef struct  histoparams{
 	t_data * data_vector1;
 	t_data * data_vector2;
