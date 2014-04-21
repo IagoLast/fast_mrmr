@@ -36,8 +36,8 @@ t_histogram Histogram::getHistogram(uint index) {
 	cudaMemcpy(h_acum, d_acum, vr * sizeof(uint), cudaMemcpyDeviceToHost);
 	cudaError err = cudaGetLastError();
 	if (cudaSuccess != err) {
-		printf("Error allocating data in GPU: %d", err);
-		exit(-1);
+		printf("Error copying histogram from GPU to CPU: %d\n", err);
+		//exit(-1);
 	}
 	return h_acum;
 }
