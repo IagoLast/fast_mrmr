@@ -30,13 +30,18 @@ RawData::~RawData() {
 
 }
 
+/**
+ * Free GPU data.
+ */
 void RawData::freeGPU() {
 	cudaFree(d_data);
 	cudaFree(d_acum);
 }
 
 /**
+ *	Free CPU and GPU data.
  *
+ *	Called only once at the end.
  */
 void RawData::destroy() {
 	freeGPU();
@@ -44,6 +49,9 @@ void RawData::destroy() {
 	free(h_data);
 }
 
+/**
+ * Gets Datasize And Feature Size from mrmr File.
+ */
 void RawData::calculateDSandFS() {
 	uint featuresSizeBuffer[1];
 	uint datasizeBuffer[1];
@@ -57,10 +65,12 @@ void RawData::calculateDSandFS() {
 	}
 }
 
+/**
+ *	Loads Data from mrmr File into memory.
+ */
 void RawData::loadData() {
 	uint i, j;
 	t_data buffer[1];
-	//	Reservo espacio para SIZE punteros
 	h_data = (t_data*) calloc(featuresSize, sizeof(t_data) * datasize);
 	fseek(dataFile, 8, 0);
 	for (i = 0; i < datasize; i++) {
@@ -72,7 +82,9 @@ void RawData::loadData() {
 }
 
 /**
- * Allocs space to keep all data in GPU, if error  program ends.
+ * Alloc space in the GPU to keep all data.
+ *
+ * End program on error.
  */
 void RawData::mallocGPU() {
 	cudaMalloc((void**) &d_acum, 255 * 255 * sizeof(uint));
@@ -90,7 +102,9 @@ void RawData::mallocGPU() {
 }
 
 /**
- * Moves the data from host to device, if error  program ends.
+ * Moves the data from host to device.
+ *
+ * End program on error.
  */
 void RawData::moveGPU() {
 	cudaMemcpy(d_data, h_data, datasize * featuresSize * sizeof(t_data),
@@ -123,49 +137,54 @@ void RawData::calculateVR() {
 }
 
 /**
- * d_acum es un acumlador permanente para evitar hacer un malloc por cada histograma.
+ * @return gpu histogram to acumulate values in.
+ *
+ * It is kept in memory to avoid making a GPU malloc for each histogram.
  */
 t_histogram RawData::getAcum() {
 	return d_acum;
 }
 
 /**
- *
+ * @return The number of samples.
  */
 uint RawData::getDataSize() {
 	return datasize;
 }
 
 /**
- *
+ * @return The number of features.
  */
 uint RawData::getFeaturesSize() {
 	return featuresSize;
 }
 
 /**
- * Returns how much values has a features FROM 1 to VALUES;
+ * Calculate the number of different values for a given feature.
+ *
+ * @param index : The feature index.
+ * @return The number of values which a feature has FROM 1 to VALUES;
  */
 uint RawData::getValuesRange(uint index) {
 	return valuesRange[index];
 }
 
 /**
- *
+ *	@return An array containing the number of different values for each feature.
  */
 uint * RawData::getValuesRangeArray() {
 	return this->valuesRange;
 }
 
 /**
- * Returns a vector containing a feature.
+ * @return a vector containing a feature.
  */
 t_feature RawData::getFeature(int index) {
 	return h_data + index * datasize;
 }
 
 /**
- * Returns the GPU vector that contains the feature.
+ * @return the GPU vector that contains the feature.
  */
 t_feature RawData::getFeatureGPU(int index) {
 	return d_data + index * datasize;

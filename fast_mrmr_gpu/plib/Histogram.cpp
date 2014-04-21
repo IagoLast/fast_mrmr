@@ -10,6 +10,7 @@
 #include <cuda_runtime_api.h>
 #include <cuda.h>
 
+
 Histogram::Histogram(RawData & rd) :
 		rawData(rd) {
 	h_acum = (t_histogram) calloc(255 * 255, sizeof(uint));
@@ -19,13 +20,18 @@ Histogram::~Histogram() {
 	free(h_acum);
 }
 
+/**
+ * Calculates the feature histogram.
+ *
+ * If the feature has 64 different values or less, uses
+ * histogram 64 to compute, otherwise uses histogramNaive.
+ *
+ * @param index : The index for the feature.
+ * @return h_acum : The histogram with the bin count.
+ */
 t_histogram Histogram::getHistogram(uint index) {
 	uint vr = rawData.getValuesRange(index);
 	t_histogram d_acum = rawData.getAcum();
-//	t_histogram h_acum = (t_histogram) calloc(vr, sizeof(uint)); //este malloc se hace solo una vez ahora.
-
-//CUDA STUFF
-	//cudaMemset(d_acum, 0, vr * sizeof(uint));
 	t_feature d_vector = rawData.getFeatureGPU(index);
 
 	if (vr < 64) {
@@ -37,7 +43,6 @@ t_histogram Histogram::getHistogram(uint index) {
 	cudaError err = cudaGetLastError();
 	if (cudaSuccess != err) {
 		printf("Error copying histogram from GPU to CPU: %d\n", err);
-		//exit(-1);
 	}
 	return h_acum;
 }

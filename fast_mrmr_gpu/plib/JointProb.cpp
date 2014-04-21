@@ -26,6 +26,9 @@ JointProb::~JointProb() {
 	free (h_acum);
 }
 
+/**
+ * Calculate joint probability for two given features and save it in h_acum.
+ */
 void JointProb::calculate() {
 	uint vr = valuesRange1 * valuesRange2;
 	t_feature d_vector1 = rawData.getFeatureGPU(index1);
@@ -41,6 +44,9 @@ void JointProb::calculate() {
 	}
 }
 
+/**
+ * @return The probability that feature1 and feature2 have certain values.
+ */
 t_prob JointProb::getProb(t_data valueFeature1, t_data valueFeature2) {
 	return (t_prob) h_acum[valueFeature1 * valuesRange2 + valueFeature2]
 			/ (t_prob) datasize;

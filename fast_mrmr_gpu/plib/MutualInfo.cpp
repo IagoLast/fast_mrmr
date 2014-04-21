@@ -12,10 +12,11 @@ MutualInfo::MutualInfo(RawData & rd, ProbTable & pt) :
 		probTable(pt), rawData(rd) {
 }
 
-MutualInfo::~MutualInfo() {
+MutualInfo::~MutualInfo() {}
 
-}
-
+/**
+ * @return Mutual information value between two features.
+ */
 double MutualInfo::get(uint featureIndex1, uint featureIndex2) {
 	uint range1 = rawData.getValuesRange(featureIndex1);
 	uint range2 = rawData.getValuesRange(featureIndex2);

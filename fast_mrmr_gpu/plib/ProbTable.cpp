@@ -16,10 +16,13 @@ ProbTable::ProbTable(RawData & rd): rawData(rd) {
 	calculate();
 }
 
-ProbTable::~ProbTable() {
+ProbTable::~ProbTable() {}
 
-}
-
+/**
+ * Generates a table with all the marginal probabilities for each value for all features.
+ *
+ * This table is kept in memory so the marginal probability is computed only one time.
+ */
 void ProbTable::calculate() {
 	Histogram histogram = Histogram(rawData);
 	int i = 0;
@@ -44,6 +47,9 @@ double ProbTable::getProbability(uint index, t_data value) {
 	return table[index][value];
 }
 
+/**
+ * Free prob table data.
+ */
 void ProbTable::destroy() {
 	for (int i = 0; i < featuresSize; i++) {
 		free(table[i]);
