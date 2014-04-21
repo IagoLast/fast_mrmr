@@ -51,6 +51,10 @@ void RawData::calculateDSandFS() {
 	fread(featuresSizeBuffer, sizeof(uint), 1, dataFile);
 	datasize = datasizeBuffer[0];
 	featuresSize = featuresSizeBuffer[0];
+	if( datasize % 16 != 0){
+		printf("Error: dataset needs mod 16 patterns: %d patterns\n", datasize);
+		exit(-1);
+	}
 }
 
 void RawData::loadData() {
