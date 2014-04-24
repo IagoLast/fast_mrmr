@@ -26,6 +26,9 @@ typedef t_data** data_table;
 ////////////////////////////////////////////////////////////////////////////////
 // Timer
 ////////////////////////////////////////////////////////////////////////////////
+/**
+ * Used to measure time between two events.
+ */
 struct Timer {
 
 	struct timeval begin, end;
@@ -35,7 +38,7 @@ struct Timer {
 		gettimeofday(&begin, NULL);
 	}
 
-	/// Time in milliseconds
+	/// @return Time in milliseconds
 	double stop() {
 		gettimeofday(&end, NULL);
 		double secs = (double) ((end.tv_sec + (end.tv_usec / 1000000.0))
